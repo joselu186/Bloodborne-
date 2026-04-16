@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>BLOODBORNE — La Pesadilla de Yharnam</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Cinzel:wght@400;600;900&family=IM+Fell+English+SC&family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --blood: #8b0000;
+      --blood-bright: #c0001a;
+      --blood-glow: #ff1a1a;
+      --black: #050505;
+      --dark: #0d0d0d;
+      --dark2: #111111;
+      --stone: #1a1a1a;
+      --ash: #2a2020;
+      --text: #c9b49a;
+      --text-dim: #7a6a5a;
+      --gold: #a07840;
+      --gold-bright: #c8952a;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--black);
+      color: var(--text);
+      font-family: 'IM Fell English', serif;
+      overflow-x: hidden;
+      cursor: crosshair;
+    }
+
+    /* ── SCROLLBAR ── */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--black); }
+    ::-webkit-scrollbar-thumb { background: var(--blood); border-radius: 3px; }
+
+    /* ── NOISE OVERLAY ── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none; z-index: 9999; opacity: 0.35;
+    }
+
+    /* ── HERO ── */
+    #hero {
+      min-height: 100vh;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      position: relative;
+      overflow: hidden;
+      background:
+        radial-gradient(ellipse 80% 60% at 50% 40%, #1a000055 0%, transparent 70%),
+        radial-gradient(ellipse 60% 40% at 20% 80%, #5000001a 0%, transparent 60%),
+        linear-gradient(180deg, #050505 0%, #0d0000 60%, #050505 100%);
+      text-align: center;
+      padding: 2rem;
+    }
+
+    /* Blood drips */
+    .drip-container {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      pointer-events: none; z-index: 1;
+    }
+    .drip {
+      position: absolute; top: -20px;
+      width: 3px; background: var(--blood);
+      border-radius: 0 0 50% 50%;
+      animation: drip linear infinite;
+      opacity: 0;
+    }
+    .drip::after {
+      content: '';
+      position: absolute; bottom: -6px; left: -3px;
+      width: 9px; height: 9px;
+      background: var(--blood);
+      border-radius: 50%;
+    }
+    @keyframes drip {
+      0%   { opacity: 0; transform: translateY(0); }
+      10%  { opacity: 0.9; }
+      90%  { opacity: 0.7; }
+      100% { opacity: 0; transform: translateY(105vh); }
+    }
+
+    /* Moon */
+    .moon {
+      position: absolute; top: 8%; right: 12%;
+      width: 130px; height: 130px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 38% 38%, #ff6633, #8b0000 55%, #3a0000);
+      box-shadow:
+        0 0 40px 15px rgba(139,0,0,0.6),
+        0 0 80px 30px rgba(139,0,0,0.3),
+        0 0 140px 60px rgba(80,0,0,0.15);
+      animation: moonPulse 4s ease-in-out infinite;
+      z-index: 1;
+    }
+    @keyframes moonPulse {
+      0%,100% { box-shadow: 0 0 40px 15px rgba(139,0,0,0.6), 0 0 80px 30px rgba(139,0,0,0.3); }
+      50%      { box-shadow: 0 0 60px 25px rgba(180,0,0,0.8), 0 0 110px 50px rgba(139,0,0,0.4); }
+    }
+
+    .hero-eyecrow {
+      font-family: 'Cinzel', serif;
+      font-size: 0.75rem;
+      letter-spacing: 0.5em;
+      color: var(--blood-bright);
+      text-transform: uppercase;
+      margin-bottom: 1.5rem;
+      position: relative; z-index: 2;
+      animation: fadeUp 1s ease 0.2s both;
+    }
+
+    h1.hero-title {
+      font-family: 'Cinzel Decorative', serif;
+      font-size: clamp(3rem, 9vw, 8rem);
+      font-weight: 900;
+      line-height: 0.9;
+      color: var(--blood-bright);
+      text-shadow:
+        0 0 30px rgba(192,0,26,0.9),
+        0 0 80px rgba(139,0,0,0.5),
+        0 2px 4px #000;
+      position: relative; z-index: 2;
+      animation: fadeUp 1s ease 0.4s both;
+      letter-spacing: 0.05em;
+    }
+
+    .hero-sub {
+      font-family: 'IM Fell English SC', serif;
+      font-size: clamp(0.9rem, 2vw, 1.3rem);
+      color: var(--text-dim);
+      letter-spacing: 0.25em;
+      margin-top: 1.2rem;
+      position: relative; z-index: 2;
+      animation: fadeUp 1s ease 0.6s both;
+    }
+
+    .hero-divider {
+      width: 200px; height: 1px;
+      background: linear-gradient(90deg, transparent, var(--blood), transparent);
+      margin: 2rem auto;
+      position: relative; z-index: 2;
+      animation: fadeUp 1s ease 0.8s both;
+    }
+
+    .hero-quote {
+      font-family: 'IM Fell English', serif;
+      font-style: italic;
+      font-size: clamp(0.85rem, 1.5vw, 1.1rem);
+      color: var(--text-dim);
+      max-width: 520px;
+      line-height: 1.8;
+      position: relative; z-index: 2;
+      animation: fadeUp 1s ease 1s both;
+    }
+
+    .scroll-cta {
+      margin-top: 3rem;
+      font-family: 'Cinzel', serif;
+      font-size: 0.65rem;
+      letter-spacing: 0.4em;
+      color: var(--blood);
+      text-transform: uppercase;
+      position: relative; z-index: 2;
+      animation: fadeUp 1s ease 1.2s both, flicker 3s ease-in-out 2s infinite;
+    }
+    @keyframes flicker {
+      0%,100% { opacity: 1; } 92% { opacity: 1; } 93% { opacity: 0.3; } 94% { opacity: 1; } 96% { opacity: 0.5; } 97% { opacity: 1; }
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(5,5,5,0.95);
+      border-bottom: 1px solid #1a0000;
+      backdrop-filter: blur(10px);
+      display: flex; justify-content: center; gap: 0;
+    }
+    nav a {
+      font-family: 'Cinzel', serif;
+      font-size: 0.7rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      text-decoration: none;
+      padding: 1rem 1.5rem;
+      transition: color 0.3s, background 0.3s;
+      border-bottom: 2px solid transparent;
+    }
+    nav a:hover {
+      color: var(--blood-bright);
+      background: rgba(139,0,0,0.05);
+      border-bottom-color: var(--blood);
+    }
+
+    /* ── SECTIONS ── */
+    section {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 6rem 2rem;
+    }
+
+    .section-label {
+      font-family: 'Cinzel', serif;
+      font-size: 0.65rem;
+      letter-spacing: 0.5em;
+      color: var(--blood);
+      text-transform: uppercase;
+      margin-bottom: 0.8rem;
+    }
+
+    h2.section-title {
+      font-family: 'Cinzel Decorative', serif;
+      font-size: clamp(1.8rem, 4vw, 3rem);
+      color: #ddd0c0;
+      font-weight: 700;
+      line-height: 1.1;
+      margin-bottom: 1.5rem;
+    }
+    h2.section-title span { color: var(--blood-bright); }
+
+    .section-sep {
+      width: 80px; height: 2px;
+      background: linear-gradient(90deg, var(--blood), transparent);
+      margin-bottom: 2.5rem;
+    }
+
+    p.body-text {
+      font-size: 1.05rem;
+      line-height: 1.95;
+      color: var(--text);
+      margin-bottom: 1.2rem;
+    }
+
+    /* ── INFO GRID ── */
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1px;
+      background: #1a0000;
+      border: 1px solid #1a0000;
+      margin: 3rem 0;
+    }
+    .info-card {
+      background: var(--dark2);
+      padding: 2rem 1.5rem;
+      position: relative;
+      overflow: hidden;
+      transition: background 0.3s;
+    }
+    .info-card:hover { background: #150000; }
+    .info-card::before {
+      content: '';
+      position: absolute; top: 0; left: 0;
+      width: 2px; height: 0;
+      background: var(--blood);
+      transition: height 0.4s ease;
+    }
+    .info-card:hover::before { height: 100%; }
+    .info-card .ic-label {
+      font-family: 'Cinzel', serif;
+      font-size: 0.6rem;
+      letter-spacing: 0.3em;
+      color: var(--blood);
+      text-transform: uppercase;
+      margin-bottom: 0.5rem;
+    }
+    .info-card .ic-value {
+      font-family: 'IM Fell English SC', serif;
+      font-size: 1.1rem;
+      color: #e8d8c0;
+    }
+
+    /* ── LORE BLOCK ── */
+    .lore-block {
+      border-left: 3px solid var(--blood);
+      padding: 1.5rem 2rem;
+      background: linear-gradient(90deg, rgba(139,0,0,0.07), transparent);
+      margin: 2.5rem 0;
+      position: relative;
+    }
+    .lore-block::before {
+      content: '"';
+      position: absolute; top: -0.5rem; left: 1.5rem;
+      font-size: 4rem;
+      color: var(--blood);
+      font-family: 'Cinzel Decorative', serif;
+      line-height: 1;
+      opacity: 0.4;
+    }
+    .lore-block p {
+      font-style: italic;
+      font-size: 1.05rem;
+      line-height: 1.9;
+      color: var(--text-dim);
+    }
+
+    /* ── BOSSES ── */
+    #bosses { background: var(--dark); }
+    #bosses > * { max-width: 1100px; margin-left: auto; margin-right: auto; }
+
+    .bosses-wrapper {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 6rem 2rem;
+    }
+
+    .boss-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+      margin-top: 3rem;
+    }
+    .boss-card {
+      background: var(--black);
+      border: 1px solid #200000;
+      padding: 2rem;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.3s, border-color 0.3s;
+    }
+    .boss-card:hover {
+      transform: translateY(-4px);
+      border-color: var(--blood);
+    }
+    .boss-card::after {
+      content: '';
+      position: absolute; bottom: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--blood), var(--blood-glow), var(--blood));
+      transform: scaleX(0);
+      transition: transform 0.4s ease;
+    }
+    .boss-card:hover::after { transform: scaleX(1); }
+
+    .boss-num {
+      font-family: 'Cinzel Decorative', serif;
+      font-size: 2.5rem;
+      color: #1a0000;
+      position: absolute; top: 1rem; right: 1.2rem;
+      line-height: 1;
+      font-weight: 900;
+      user-select: none;
+    }
+    .boss-name {
+      font-family: 'Cinzel', serif;
+      font-size: 1.1rem;
+      color: var(--blood-bright);
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+    }
+    .boss-title {
+      font-family: 'IM Fell English SC', serif;
+      font-size: 0.8rem;
+      color: var(--text-dim);
+      margin-bottom: 1rem;
+      letter-spacing: 0.1em;
+    }
+    .boss-desc {
+      font-size: 0.92rem;
+      line-height: 1.75;
+      color: var(--text-dim);
+    }
+
+    /* ── CURIOSITIES ── */
+    .curiosity-list {
+      display: flex; flex-direction: column; gap: 1.5rem;
+      margin-top: 3rem;
+    }
+    .curiosity-item {
+      display: grid;
+      grid-template-columns: 3rem 1fr;
+      gap: 1.5rem;
+      align-items: start;
+      padding: 1.5rem;
+      background: var(--dark2);
+      border: 1px solid #1a0000;
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.3s;
+    }
+    .curiosity-item:hover { border-color: var(--blood); }
+    .curiosity-item::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse at left, rgba(139,0,0,0.05), transparent 60%);
+      opacity: 0;
+      transition: opacity 0.4s;
+    }
+    .curiosity-item:hover::before { opacity: 1; }
+    .curiosity-n {
+      font-family: 'Cinzel Decorative', serif;
+      font-size: 1.4rem;
+      color: var(--blood);
+      font-weight: 900;
+      line-height: 1;
+    }
+    .curiosity-text {
+      font-size: 0.98rem;
+      line-height: 1.8;
+      color: var(--text);
+    }
+    .curiosity-text strong {
+      font-family: 'Cinzel', serif;
+      color: #e0c9a8;
+      font-size: 0.85rem;
+      letter-spacing: 0.08em;
+      display: block;
+      margin-bottom: 0.3rem;
+    }
+
+    /* ── STATS ── */
+    .stat-row {
+      display: flex; flex-direction: column; gap: 1rem;
+      margin: 3rem 0;
+    }
+    .stat-item label {
+      font-family: 'Cinzel', serif;
+      font-size: 0.65rem;
+      letter-spacing: 0.3em;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      display: flex; justify-content: space-between;
+      margin-bottom: 0.4rem;
+    }
+    .stat-item label span { color: var(--blood-bright); }
+    .stat-bar {
+      height: 4px;
+      background: #1a0000;
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .stat-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--blood), var(--blood-glow));
+      border-radius: 2px;
+      width: 0;
+      transition: width 1.5s cubic-bezier(0.25, 1, 0.5, 1);
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top: 1px solid #1a0000;
+      text-align: center;
+      padding: 3rem 2rem;
+      background: var(--black);
+    }
+    .footer-title {
+      font-family: 'Cinzel Decorative', serif;
+      font-size: 1.5rem;
+      color: var(--blood);
+      margin-bottom: 0.5rem;
+    }
+    footer p {
+      font-size: 0.8rem;
+      color: var(--text-dim);
+      letter-spacing: 0.1em;
+    }
+    footer .disclaimer {
+      margin-top: 1.5rem;
+      font-size: 0.7rem;
+      color: #333;
+    }
+
+    /* ── FULL-WIDTH SECTIONS ── */
+    .full-dark { background: var(--dark); }
+
+    /* ── SYMBOL DECO ── */
+    .deco-sym {
+      font-family: 'Cinzel Decorative', serif;
+      color: #1a0000;
+      font-size: 8rem;
+      position: absolute;
+      right: -1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      user-select: none;
+      pointer-events: none;
+      line-height: 1;
+    }
+
+    /* ── ANIMATE ON SCROLL ── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(40px);
+      transition: opacity 0.8s ease, transform 0.8s ease;
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .reveal-delay-1 { transition-delay: 0.1s; }
+    .reveal-delay-2 { transition-delay: 0.2s; }
+    .reveal-delay-3 { transition-delay: 0.3s; }
+    .reveal-delay-4 { transition-delay: 0.4s; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 600px) {
+      nav a { padding: 0.75rem 0.8rem; font-size: 0.6rem; }
+      .moon { width: 80px; height: 80px; right: 5%; }
+      .deco-sym { font-size: 4rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- HERO -->
+<div id="hero">
+  <div class="moon"></div>
+
+  <!-- Blood drips generated by JS -->
+  <div class="drip-container" id="drips"></div>
+
+  <p class="hero-eyecrow">FromSoftware · PlayStation 4 · 2015</p>
+  <h1 class="hero-title">BLOODBORNE</h1>
+  <p class="hero-sub">La Pesadilla de Yharnam</p>
+  <div class="hero-divider"></div>
+  <p class="hero-quote">
+    "Que la buena sangre guíe tu camino…<br>
+    Un cazador no debe ceder a la bestia que lleva dentro."
+  </p>
+  <p class="scroll-cta">↓ Desciende a la oscuridad ↓</p>
+</div>
+
+<!-- NAV -->
+<nav>
+  <a href="#sobre">El Juego</a>
+  <a href="#lore">El Mundo</a>
+  <a href="#bosses">Jefes</a>
+  <a href="#curiosidades">Curiosidades</a>
+  <a href="#legado">Legado</a>
+</nav>
+
+<!-- SOBRE EL JUEGO -->
+<section id="sobre">
+  <p class="section-label reveal">Ficha General</p>
+  <h2 class="section-title reveal reveal-delay-1">Sobre el <span>Juego</span></h2>
+  <div class="section-sep reveal reveal-delay-2"></div>
+
+  <p class="body-text reveal reveal-delay-2">
+    <strong>Bloodborne</strong> es un videojuego de acción y rol desarrollado por <strong>FromSoftware</strong>
+    bajo la dirección de <strong>Hidetaka Miyazaki</strong>, publicado por Sony Computer Entertainment
+    exclusivamente para PlayStation 4 en marzo de 2015. Es considerado uno de los mejores
+    videojuegos de la historia y una obra cumbre del género conocido popularmente como <em>soulslike</em>.
+  </p>
+  <p class="body-text reveal reveal-delay-3">
+    A diferencia de sus predecesores —Demon's Souls y la saga Dark Souls— Bloodborne abandona
+    la paciencia defensiva y el escudo para abrazar una filosofía radicalmente agresiva:
+    <em>ataca o muere</em>. El sistema de recuperación de vida (<strong>Rally</strong>) recompensa
+    la osadía inmediata tras recibir daño, transformando cada combate en una danza violenta
+    al filo de la muerte.
+  </p>
+
+  <div class="info-grid reveal">
+    <div class="info-card">
+      <div class="ic-label">Desarrollador</div>
+      <div class="ic-value">FromSoftware</div>
+    </div>
+    <div class="info-card">
+      <div class="ic-label">Director</div>
+      <div class="ic-value">Hidetaka Miyazaki</div>
+    </div>
+    <div class="info-card">
+      <div class="ic-label">Lanzamiento</div>
+      <div class="ic-value">24 Marzo 2015</div>
+    </div>
+    <div class="info-card">
+      <div class="ic-label">Plataforma</div>
+      <div class="ic-value">PlayStation 4</div>
+    </div>
+    <div class="info-card">
+      <div class="ic-label">DLC</div>
+      <div class="ic-value">The Old Hunters (2015)</div>
+    </div>
+    <div class="info-card">
+      <div class="ic-label">Puntuación Metacritic</div>
+      <div class="ic-value">92 / 100</div>
+    </div>
+  </div>
+
+  <p class="body-text reveal">
+    El juego transcurre en <strong>Yharnam</strong>, una ciudad victoriana gótica sumida en una
+    plaga bestial llamada "la enfermedad de la sangre". El jugador encarna a un extranjero recién
+    llegado que busca la misteriosa <em>Sangre Pálida</em>, y poco a poco descubre que los horrores
+    que acechan en las calles son apenas la punta de un iceberg de locura cósmica inspirado
+    en las obras de <strong>H.P. Lovecraft</strong>.
+  </p>
+
+  <div class="stat-row reveal">
+    <div class="stat-item">
+      <label>Dificultad <span>Brutal</span></label>
+      <div class="stat-bar"><div class="stat-fill" data-w="92"></div></div>
+    </div>
+    <div class="stat-item">
+      <label>Profundidad de Lore <span>Abismal</span></label>
+      <div class="stat-bar"><div class="stat-fill" data-w="97"></div></div>
+    </div>
+    <div class="stat-item">
+      <label>Diseño Artístico <span>Magistral</span></label>
+      <div class="stat-bar"><div class="stat-fill" data-w="99"></div></div>
+    </div>
+    <div class="stat-item">
+      <label>Velocidad de Combate <span>Frenética</span></label>
+      <div class="stat-bar"><div class="stat-fill" data-w="88"></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- LORE / EL MUNDO -->
+<div class="full-dark">
+<section id="lore">
+  <p class="section-label reveal">Mitología y Narrativa</p>
+  <h2 class="section-title reveal reveal-delay-1">El Mundo de <span>Yharnam</span></h2>
+  <div class="section-sep reveal reveal-delay-2"></div>
+
+  <p class="body-text reveal reveal-delay-2">
+    Bloodborne construye su narrativa de forma fragmentada e implícita: a través de descripciones
+    de objetos, diálogos crípticos y escenarios cargados de simbolismo. El lore es una cebolla
+    de capas interminables que la comunidad lleva más de una década descifrando.
+  </p>
+
+  <div class="lore-block reveal">
+    <p>
+      La ciudad de Yharnam fue construida sobre las ruinas de una civilización aún más antigua:
+      la de los <strong>Pthumerianos</strong>, quienes descubrieron la sangre de los <em>Grandes Seres</em>
+      —entidades cósmicas que trascienden el entendimiento humano— y la usaron para obtener
+      conocimiento y poder. Ese mismo poder se convirtió en su ruina.
+    </p>
+  </div>
+
+  <p class="body-text reveal">
+    El núcleo temático del juego gira en torno a la <strong>comprensión prohibida</strong>:
+    cuanto más sabe el cazador sobre los Grandes Seres, más se aleja de su humanidad.
+    La estadística de <em>Insight</em> (Perspicacia) —que aumenta al contemplar horrores cósmicos—
+    no es solo un mechanic; es una metáfora directa de la locura que conlleva el conocimiento.
+  </p>
+
+  <div class="info-grid reveal">
+    <div class="info-card">
+      <div class="ic-label">Los Grandes Seres</div>
+      <div class="ic-value">Oedon, Mergo, Rom, Amygdala, Kos…</div>
+    </div>
+    <div class="info-card">
+      <div class="ic-label">Facciones</div>
+      <div class="ic-value">Iglesia de la Curación · Escuela de Mensis · Cuerpo de Cazadores</div>
+    </div>
+    <div class="info-card">
+      <div class="ic-label">Inspiración literaria</div>
+      <div class="ic-value">Lovecraft · Bram Stoker · Edgar Allan Poe</div>
+    </div>
+    <div class="info-card">
+      <div class="ic-label">Finales alternativos</div>
+      <div class="ic-value">3 Finales distintos</div>
+    </div>
+  </div>
+
+  <div class="lore-block reveal">
+    <p>
+      La <em>Lucidez</em> alta modifica literalmente la percepción del mundo: aparecen
+      criaturas invisibles antes ocultas, los sonidos del bebé de Mergo se vuelven
+      audibles y ciertos PNJ cambian su comportamiento. El juego te convierte en
+      cómplice de la locura que condena a sus personajes.
+    </p>
+  </div>
+</section>
+</div>
+
+<!-- JEFES -->
+<div id="bosses" class="full-dark" style="background: var(--black);">
+<div class="bosses-wrapper">
+  <p class="section-label reveal">Adversarios Legendarios</p>
+  <h2 class="section-title reveal reveal-delay-1">Los <span>Jefes</span> Principales</h2>
+  <div class="section-sep reveal reveal-delay-2"></div>
+  <p class="body-text reveal reveal-delay-2">
+    Bloodborne es célebre por sus jefes: criaturas diseñadas no solo para matar,
+    sino para narrar. Cada uno encapsula un aspecto del lore y exige aprender
+    un lenguaje de combate completamente nuevo.
+  </p>
+
+  <div class="boss-list">
+    <div class="boss-card reveal reveal-delay-1">
+      <div class="boss-num">01</div>
+      <div class="boss-name">Bestia Clérigo</div>
+      <div class="boss-title">El Primer Horror</div>
+      <p class="boss-desc">El primer jefe del juego. Una criatura que fue sacerdote de la Iglesia de la Curación antes de sucumbir a la plaga bestial. Es el momento en que el juego deja claro que no hay piedad.</p>
+    </div>
+    <div class="boss-card reveal reveal-delay-2">
+      <div class="boss-num">02</div>
+      <div class="boss-name">Padre Gascoigne</div>
+      <div class="boss-title">El Cazador Caído</div>
+      <p class="boss-desc">Excelente cazador que perdió la mente ante la noche interminable. Enseña al jugador que incluso los héroes caen. Su historia familiar lo convierte en uno de los personajes más trágicos del juego.</p>
+    </div>
+    <div class="boss-card reveal reveal-delay-3">
+      <div class="boss-num">03</div>
+      <div class="boss-name">Bruha de Hemwick</div>
+      <div class="boss-title">La Bruja de la Sangre</div>
+      <p class="boss-desc">Guardiana de los secretos más oscuros de la Iglesia. Con sus compañeras, fue de las primeras en contactar con los rituales de sangre Pthumerianos. Su verdadera naturaleza es mucho más aterradora de lo que parece.</p>
+    </div>
+    <div class="boss-card reveal reveal-delay-1">
+      <div class="boss-num">04</div>
+      <div class="boss-name">Micolash</div>
+      <div class="boss-title">Huésped de la Pesadilla</div>
+      <p class="boss-desc">Un erudito de la Escuela de Mensis que buscó unirse a los Grandes Seres a través del sueño. Su mente quedó atrapada en la Pesadilla de Mensis. Su combate es tan enloquecido como su existencia.</p>
+    </div>
+    <div class="boss-card reveal reveal-delay-2">
+      <div class="boss-num">05</div>
+      <div class="boss-name">Gehrman</div>
+      <div class="boss-title">El Primer Cazador</div>
+      <p class="boss-desc">El mentor. El guardián. El prisionero. Gehrman lleva eones atrapado en el Sueño del Cazador, sirviendo a la Gran Voluntad. Su combate final es una de las grandes despedidas de la historia del videojuego.</p>
+    </div>
+    <div class="boss-card reveal reveal-delay-3">
+      <div class="boss-num">06</div>
+      <div class="boss-name">Presencia Lunar</div>
+      <div class="boss-title">La Mente Oculta</div>
+      <p class="boss-desc">El verdadero señor del Sueño del Cazador. Una entidad cósmica de poder inimaginable cuya presencia habita el espacio entre la realidad y el sueño. Solo el final verdadero la revela.</p>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- CURIOSIDADES -->
+<div class="full-dark">
+<section id="curiosidades">
+  <p class="section-label reveal">Datos Ocultos</p>
+  <h2 class="section-title reveal reveal-delay-1"><span>Curiosidades</span> y Secretos</h2>
+  <div class="section-sep reveal reveal-delay-2"></div>
+
+  <div class="curiosity-list">
+    <div class="curiosity-item reveal">
+      <div class="curiosity-n">01</div>
+      <div class="curiosity-text">
+        <strong>La Influencia Lovecraftiana</strong>
+        Hidetaka Miyazaki fue profundamente influenciado por H.P. Lovecraft al diseñar el lore. Los Grandes Seres son esencialmente los "Dioses Primigenios" lovecraftianos: entidades cuyo mero conocimiento destruye la mente humana. El término japonés usado en el juego es literalmente "Outer Gods" (Dioses Exteriores), guiño directo al Necronomicón.
+      </div>
+    </div>
+    <div class="curiosity-item reveal reveal-delay-1">
+      <div class="curiosity-n">02</div>
+      <div class="curiosity-text">
+        <strong>El Personaje Cortado: Djura</strong>
+        Djura, el cazador anciano en la Vieja Yharnam, iba a tener un arco argumental mucho más extenso con misiones propias. La mayoría de su historia fue cortada durante el desarrollo. Sus diálogos finales sugieren una relación con los Pthumerios que nunca se exploró en el juego.
+      </div>
+    </div>
+    <div class="curiosity-item reveal reveal-delay-2">
+      <div class="curiosity-n">03</div>
+      <div class="curiosity-text">
+        <strong>El Lagarto Sanador — Datos de Diseño</strong>
+        Cada bestia en Bloodborne fue diseñada para reflejar el estado de transformación de quien fue antes. El Lagarto Sanador del inicio del juego tiene la silueta de un ser humano encorvado, visible solo si se observa detenidamente. Es un humano que ya no recuerda que alguna vez lo fue.
+      </div>
+    </div>
+    <div class="curiosity-item reveal reveal-delay-1">
+      <div class="curiosity-n">04</div>
+      <div class="curiosity-text">
+        <strong>La Duración de Desarrollo</strong>
+        El proyecto pasó por al menos dos conceptos radicalmente distintos antes de convertirse en Bloodborne. En sus primeras fases era conocido internamente como "Project Beast" y tenía una ambientación más próxima a Dark Souls, con menos énfasis en el horror cósmico.
+      </div>
+    </div>
+    <div class="curiosity-item reveal reveal-delay-2">
+      <div class="curiosity-n">05</div>
+      <div class="curiosity-text">
+        <strong>El Ojo del Cerebro de Mensis</strong>
+        El Cerebro de Mensis —uno de los jefes más perturbadores del juego— tiene un ojo humano gigante en su interior. Esta imagen fue inspirada directamente por el cuadro "Saturn Devouring His Son" de Goya. FromSoftware confirmó la referencia pictórica en entrevistas japonesas.
+      </div>
+    </div>
+    <div class="curiosity-item reveal reveal-delay-1">
+      <div class="curiosity-n">06</div>
+      <div class="curiosity-text">
+        <strong>El quinto Final Oculto</strong>
+        Existe un quinto "final" no oficial: si el jugador muere ante Gehrman sin elegir ninguna opción del diálogo, el juego retorna al inicio del ciclo de forma distinta. Los diseñadores de Miyazaki llamaron a esto "el final del cazador cobarde" en alusiones en entrevistas.
+      </div>
+    </div>
+    <div class="curiosity-item reveal reveal-delay-2">
+      <div class="curiosity-n">07</div>
+      <div class="curiosity-text">
+        <strong>El Bebé de Mergo Nunca Existió</strong>
+        Mergo es un Gran Ser que nunca nació físicamente. Su llanto —uno de los sonidos más inquietantes del juego— proviene de una entidad que existe únicamente en la Pesadilla. La nodriza que lo "cuida" protege un espacio vacío. La criatura a la que tanto teme Yharnam es literalmente la nada.
+      </div>
+    </div>
+    <div class="curiosity-item reveal reveal-delay-1">
+      <div class="curiosity-n">08</div>
+      <div class="curiosity-text">
+        <strong>Récord en Speedrunning</strong>
+        La comunidad de speedrunning de Bloodborne es una de las más activas del género. El récord mundial en la categoría "Any%" (sin restricciones) fue roto múltiples veces hasta llegar por debajo de los 22 minutos, aprovechando bugs de salto de memoria y clips a través de geometría. Miyazaki comentó que lo encuentra "fascinante y perturbador a partes iguales".
+      </div>
+    </div>
+  </div>
+</section>
+</div>
+
+<!-- LEGADO -->
+<section id="legado">
+  <p class="section-label reveal">Impacto Cultural</p>
+  <h2 class="section-title reveal reveal-delay-1">El <span>Legado</span> de Bloodborne</h2>
+  <div class="section-sep reveal reveal-delay-2"></div>
+
+  <p class="body-text reveal reveal-delay-2">
+    Diez años después de su lanzamiento, Bloodborne sigue siendo una de las obras más
+    influyentes de la historia reciente del videojuego. Su estética visual —goticismo victoriano
+    fusionado con horror cósmico— ha sido replicada en decenas de títulos posteriores.
+    Su filosofía de diseño, donde la dificultad es inseparable del significado, redefinió
+    las expectativas de toda una generación de jugadores.
+  </p>
+  <p class="body-text reveal reveal-delay-3">
+    La demanda de una versión para PC o un remake en PS5 se ha convertido en una
+    de las peticiones más persistentes de la historia del gaming moderno. Años después
+    de su lanzamiento, sigue siendo un <em>exclusive</em> de PlayStation 4 —lo que muchos
+    consideran un crimen contra la cultura—, aunque los rumores de una versión remasterizada
+    nunca han cesado por completo.
+  </p>
+
+  <div class="lore-block reveal">
+    <p>
+      "Bloodborne no es solo un videojuego difícil. Es un estudio sobre la obsesión,
+      el conocimiento y el precio de mirar demasiado profundo hacia el abismo.
+      Cada muerte es un párrafo. Cada jefe es un capítulo. Al final,
+      el jugador no termina el juego; el juego lo termina a él."
+      <br><br>— Communidad de Bloodborne
+    </p>
+  </div>
+
+  <div class="info-grid reveal" style="margin-top:2rem;">
+    <div class="info-card">
+      <div class="ic-label">Copias Vendidas</div>
+      <div class="ic-value">+2 millones (2015)</div>
+    </div>
+    <div class="info-card">
+      <div class="ic-label">GOTY Awards</div>
+      <div class="ic-value">Más de 150 premios</div>
+    </div>
+    <div class="info-card">
+      <div class="ic-label">DLC</div>
+      <div class="ic-value">The Old Hunters — Considerado una obra maestra independiente</div>
+    </div>
+    <div class="info-card">
+      <div class="ic-label">Comunidad activa</div>
+      <div class="ic-value">Más de 800k en Reddit (r/bloodborne)</div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-title">BLOODBORNE</div>
+  <p>FromSoftware · Sony Interactive Entertainment · 2015</p>
+  <p style="margin-top:0.5rem; color: #555; font-style:italic;">"El comienzo de la locura es la pérdida del yo; el fin de la locura es la muerte del yo."</p>
+  <p class="disclaimer">Página de carácter informativo y fan-made. Todos los derechos de Bloodborne pertenecen a FromSoftware y Sony Interactive Entertainment.</p>
+</footer>
+
+<script>
+  // ── BLOOD DRIPS ──
+  const drips = document.getElementById('drips');
+  for (let i = 0; i < 18; i++) {
+    const d = document.createElement('div');
+    d.classList.add('drip');
+    const left = Math.random() * 100;
+    const h = 40 + Math.random() * 120;
+    const dur = 3 + Math.random() * 7;
+    const delay = Math.random() * 10;
+    d.style.cssText = `left:${left}%;height:${h}px;animation-duration:${dur}s;animation-delay:${delay}s;`;
+    drips.appendChild(d);
+  }
+
+  // ── REVEAL ON SCROLL ──
+  const reveals = document.querySelectorAll('.reveal');
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); obs.unobserve(e.target); } });
+  }, { threshold: 0.12 });
+  reveals.forEach(r => obs.observe(r));
+
+  // ── STAT BARS ──
+  const statObs = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.querySelectorAll('.stat-fill').forEach(f => {
+          f.style.width = f.dataset.w + '%';
+        });
+        statObs.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.4 });
+  document.querySelectorAll('.stat-row').forEach(r => statObs.observe(r));
+
+  // ── CUSTOM CURSOR BLOOD SPLATTER ──
+  document.addEventListener('click', (e) => {
+    const s = document.createElement('div');
+    s.style.cssText = `
+      position:fixed; left:${e.clientX}px; top:${e.clientY}px;
+      width:8px; height:8px; background:#8b0000;
+      border-radius:50%; pointer-events:none; z-index:99998;
+      transform:translate(-50%,-50%);
+      animation: splat 0.6s ease forwards;
+    `;
+    document.body.appendChild(s);
+    setTimeout(() => s.remove(), 600);
+  });
+
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes splat {
+      0%   { transform: translate(-50%,-50%) scale(0); opacity:1; }
+      50%  { transform: translate(-50%,-50%) scale(3); opacity:0.8; }
+      100% { transform: translate(-50%,-50%) scale(5); opacity:0; }
+    }
+  `;
+  document.head.appendChild(style);
+</script>
+</body>
+</html>
